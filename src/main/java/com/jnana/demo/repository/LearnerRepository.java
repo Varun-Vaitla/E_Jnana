@@ -8,4 +8,5 @@ public interface LearnerRepository extends JpaRepository<Learner, Long>  {
 	boolean existsByMobile(long mobile);
 
 	boolean existsByEmail(String email);
+	Learner findByEmail(String email);
 }
