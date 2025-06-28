@@ -45,7 +45,7 @@ public class GeneralService {
 
 	@Autowired
 	TemplateEngine templateEngine;
-	
+
 	@Value("${OTP_TIME}")
 	long otpTime;
 
@@ -71,7 +71,7 @@ public class GeneralService {
 
 		if (!result.hasErrors()) {
 			int otp = new Random().nextInt(100000, 1000000);
-			
+
 			session.setAttribute("otp", otp);
 			session.setAttribute("userDto", userDto);
 			sendEmail(otp, userDto);
@@ -141,10 +141,11 @@ public class GeneralService {
 			mailSender.send(message);
 		} catch (Exception e) {
 			System.err.println("Failed to Send OTP : " + otp);
-		
+
 		}
 
 	}
+
 	public void removeMessage() {
 		RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
 		ServletRequestAttributes attributes = (ServletRequestAttributes) requestAttributes;

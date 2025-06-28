@@ -47,6 +47,7 @@ public class GeneralController {
 	public String submitOtp(@RequestParam int otp, HttpSession session) {
 		return generalService.confirmOtp(otp, session);
 	}
+
 	@GetMapping("/resend-otp")
 	public String resendOtp(HttpSession session) {
 		return generalService.resendOtp(session);

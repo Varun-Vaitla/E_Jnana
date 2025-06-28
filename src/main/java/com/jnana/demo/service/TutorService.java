@@ -38,6 +38,7 @@ public class TutorService {
 	CourseRepository courseRepository;
 	@Autowired
 	SectionRepository sectionRepository;
+
 	public String loadHome(HttpSession session) {
 		if (session.getAttribute("tutor") != null) {
 			return "tutor-home.html";
@@ -82,6 +83,7 @@ public class TutorService {
 			return "redirect:/login";
 		}
 	}
+
 	public String addCourse(HttpSession session, Model model, CourseDto courseDto) {
 		if (session.getAttribute("tutor") != null) {
 			model.addAttribute("courseDto", courseDto);
@@ -131,6 +133,7 @@ public class TutorService {
 			return "redirect:/login";
 		}
 	}
+
 	public String publishCourse(Long id, HttpSession session) {
 		if (session.getAttribute("tutor") != null) {
 			Course course = courseRepository.findById(id).orElseThrow();
@@ -138,7 +141,7 @@ public class TutorService {
 				session.setAttribute("pass", "Course Already Published");
 				return "redirect:/tutor/courses";
 			}
-			
+
 			List<Section> sections = sectionRepository.findByCourse(course);
 
 			if (course.getQuizQuestions().isEmpty() || sections.isEmpty()) {
@@ -148,7 +151,7 @@ public class TutorService {
 				course.setPublished(true);
 				courseRepository.save(course);
 				session.setAttribute("pass", "Course Published Success");
-				
+
 				session.setAttribute("success", "Course Published Success");
 				return "redirect:/tutor/courses";
 			}
@@ -190,12 +193,11 @@ public class TutorService {
 				section.setTitle(sectionDto.getTitle());
 				section.setNotesUrl(saveNotes(sectionDto.getNotes(), tutor.getName(), section.getTitle()));
 				section.setVideoUrl(saveVideo(sectionDto.getVideo(), tutor.getName(), section.getTitle()));
-				
+
 				List<QuizQuestion> questions = Arrays.stream(sectionDto.getQuestions().split("\\?"))
 						.map(x -> new QuizQuestion(x)).collect(Collectors.toList());
 				section.setQuizQuestions(questions);
 
-				
 				sectionRepository.save(section);
 				session.setAttribute("pass", "Section Added Success");
 				return "redirect:/tutor/sections";
@@ -227,44 +229,44 @@ public class TutorService {
 			return null;
 		}
 	}
-	
 
-String saveNotes(MultipartFile multipartFile, String tutor, String section) {
-	try {
-		String originalFilename = multipartFile.getOriginalFilename();
-		String extension = originalFilename != null && originalFilename.contains(".")
-				? originalFilename.substring(originalFilename.lastIndexOf('.'))
-				: ".pdf";
+	String saveNotes(MultipartFile multipartFile, String tutor, String section) {
+		try {
+			String originalFilename = multipartFile.getOriginalFilename();
+			String extension = originalFilename != null && originalFilename.contains(".")
+					? originalFilename.substring(originalFilename.lastIndexOf('.'))
+					: ".pdf";
 
-		String uniqueId = UUID.randomUUID().toString();
+			String uniqueId = UUID.randomUUID().toString();
 
-		Map uploadResult = cloudinary.uploader().upload(multipartFile.getBytes(),
-				ObjectUtils.asMap("resource_type", "raw", "public_id",
-						"elearning/notes/" + tutor + "_" + section + "_" + uniqueId, "format",
-						extension.replace(".", "")));
+			Map uploadResult = cloudinary.uploader().upload(multipartFile.getBytes(),
+					ObjectUtils.asMap("resource_type", "raw", "public_id",
+							"elearning/notes/" + tutor + "_" + section + "_" + uniqueId, "format",
+							extension.replace(".", "")));
 
-		return (String) uploadResult.get("url");
+			return (String) uploadResult.get("url");
 
-	} catch (IOException e) {
-		e.printStackTrace();
-		return null;
-	}
-	}
-public String viewSections(HttpSession session, Model model) {
-	if (session.getAttribute("tutor") != null) {
-		List<Course> courses = courseRepository.findByTutor((Tutor) session.getAttribute("tutor"));
-		List<Section> sections = sectionRepository.findByCourseIn(courses);
-
-		if (sections.isEmpty()) {
-			session.setAttribute("fail", "No Sections Added Yet");
-			return "redirect:/tutor/sections";
-		} else {
-			model.addAttribute("sections", sections);
-			return "view-sections.html";
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
 		}
-	} else {
-		session.setAttribute("fail", "Invalid Session, Login First");
-		return "redirect:/login";
 	}
-}
+
+	public String viewSections(HttpSession session, Model model) {
+		if (session.getAttribute("tutor") != null) {
+			List<Course> courses = courseRepository.findByTutor((Tutor) session.getAttribute("tutor"));
+			List<Section> sections = sectionRepository.findByCourseIn(courses);
+
+			if (sections.isEmpty()) {
+				session.setAttribute("fail", "No Sections Added Yet");
+				return "redirect:/tutor/sections";
+			} else {
+				model.addAttribute("sections", sections);
+				return "view-sections.html";
+			}
+		} else {
+			session.setAttribute("fail", "Invalid Session, Login First");
+			return "redirect:/login";
+		}
+	}
 }
